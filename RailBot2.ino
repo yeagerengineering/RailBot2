@@ -31,66 +31,104 @@
 #define RF_CS 22
 #define RF_CSN 23
 
-#define MOTOR_1 25
-#define MOTOR_2 26
-#define MOTOR_EN 15
-#define MAX_SPEED 255
+#define MOTOR_2 25
+#define MOTOR_1 26
+#define MOTOR_EN 13
+#define MAX_SPEED 240
 
 //NOTE: the "LL" at the end of the constant is "LongLong" type
 const uint64_t pipe = 0xF0F0F0F0D2LL; // Define the transmit pipe
 long count;
 long countIncrement;
+long loopCount;
 
 /*-----( Declare objects )-----*/
 RF24 radio(RF_CS,RF_CSN); // Create a Radio
 
 //play with stop condition
-void move () {
+void move (int dir) {
   
   long currentCount = count;
   
   int motorSpeed = 0;
   
-   while (count < (currentCount + countIncrement / 2)) {
+  
+  if (dir == 1){
+     digitalWrite(MOTOR_1, LOW);
+     digitalWrite(MOTOR_2, HIGH);
+  } else {
+      digitalWrite(MOTOR_1, HIGH);
+      digitalWrite(MOTOR_2, LOW);
+  }
+  
+  //Serial.println("Speeding up");
+  
+   while (count < (currentCount + countIncrement - 20)) {
       
      analogWrite(MOTOR_EN, motorSpeed);
      
-     if(motorSpeed + 15 > MAX_SPEED){
+     if(motorSpeed + 30 > MAX_SPEED){
        motorSpeed = MAX_SPEED;
      } else {
-       motorSpeed+=15;
+       motorSpeed+=30;
      }
-     delay(100);
+     delay(300);
  
      }
+    
 
-     while (count < (currentCount + countIncrement)) {
-      
+   //Serial.println("Slowing speed.");
+   
+   motorSpeed = 200;
+   analogWrite(MOTOR_EN, motorSpeed);
+   
+       /*
        analogWrite(MOTOR_EN, motorSpeed);
      
        if (motorSpeed - 15 < 0) {
          motorSpeed = 0;
        } else {
-         motorSpeed-=15;
+         Serial.println("Slowing down");
+         motorSpeed -= 15;
        }
-     
+       
        delay(100);
  
      }
+     */
+ 
+  //Serial.println("Waiting");
   
-    digitalWrite(MOTOR_1, LOW);
+  while ((count < currentCount + countIncrement - 5)){
+    delay(1);
+  }
+  
+  Serial.println("Braking");
+
+    if (dir == 1) {
+      digitalWrite(MOTOR_1, HIGH);
+    } else {
+       digitalWrite(MOTOR_1, LOW);
+     }
+     
     analogWrite(MOTOR_EN, 255);
     
     delay(50);
     
     analogWrite(MOTOR_EN, 0);
-    digitalWrite(MOTOR_1, HIGH);   
-  }
+    
+    if (dir == 1) {
+      digitalWrite(MOTOR_1, LOW);
+    } else {
+      digitalWrite(MOTOR_1, HIGH);   
+    }
+   
+   Serial.print(count - currentCount);
   
   return;
   
-}  
-  
+}
+
   void setup()   /****** SETUP: RUNS ONCE ******/
 {
   Serial.begin(115200);
@@ -120,11 +158,21 @@ void move () {
   Serial.println("RF Module information:");
   radio.printDetails();
   
+  loopCount = 0;
+  countIncrement = 50;
+  
 }//--(end setup )---
 
 
 void loop()   /****** LOOP: RUNS CONSTANTLY ******/
 { 
+  delay(500);
+  
+  move(0);
+  
+  delay(500);
+  
+  move(1);
   
 }//--(end main loop )---
 
@@ -132,8 +180,8 @@ void loop()   /****** LOOP: RUNS CONSTANTLY ******/
 
 void countInt() {
   count++;
-  Serial.print("Count = ");
-  Serial.println(count);
+ // Serial.print("Count = ");
+ //Serial.println(count);
 }
 
 /*-----( Declare User-written Functions )-----*/
