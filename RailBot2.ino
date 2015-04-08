@@ -1,6 +1,31 @@
-/*
- - CONNECTIONS: nRF24L01 Modules See:
- http://arduino-info.wikispaces.com/Nrf24L01-2.4GHz-HowTo
+/*****************************************************************************
+
+    File Overview:
+    
+    Authors:
+    Delivery Date:
+    
+    File Name:  RailBot.ino
+    
+ *****************************************************************************
+ $LOG$
+ *****************************************************************************
+ $NOTES$
+ *****************************************************************************
+ $REFERENCES$
+ *****************************************************************************/
+
+/*-----( ARDUINO MEGA2650 PIN CONFIGURATION )-----*/
+
+/* LASER - UNI-T
+
+*/
+
+
+/* Radio Modules - nRF24L01
+  Modules See:
+  http://arduino-info.wikispaces.com/Nrf24L01-2.4GHz-HowTo
+  
    1 - GND
    2 - VCC 3.3V !!! NOT 5V
    3 - CE to Arduino pin 9
@@ -12,67 +37,51 @@
    
  - V1.00 11/26/13
    Based on examples at http://www.bajdi.com/
-   Questions: terry@yourduino.com */
+   Questions: terry@yourduino.com
+*/
 
 /*-----( Import needed libraries )-----*/
-#include <SPI.h>
-//#include "nRF24L01.h"
-#include "RF24.h"
-#include "printf.h"
-#include <SD.h>
+#include <SPI.h>       // SPI bus Library
+#include <SD.h>        // SD Library
+#include "RF24.h"      // RF Module Library
+#include "printf.h"    // RF Printf Library
+#include "nRF24L01.h"  // RF Module Definitions
 
-//Pin definitions
-//Digital
-#define SD_CS 24
-#define RF_CS 22
-#define RF_CSN 23
-<<<<<<< HEAD
+/*-----( Pin Definitions )-----*/
+// Digital Components
+#define SD_CS_P 24         // SD Chip Select (out) => pin24
+#define RF_CS_P 22         // RF Chip Select (out) => pin22
+#define RF_CSN_P 23        // RF_ (out) => pin23
+#define LASER_ON_P = 7;    // Laser on (out) pin+7
+#define LASER_OFF_P = 8;   // Laser off (out) => pin8
 
-#define MOTOR_2 25
-#define MOTOR_1 26
-#define MOTOR_EN 13
-#define MAX_SPEED 240
-=======
-#define MOTOR_1 25
-#define MOTOR_2 26
+// Analong Components
+#define MOTOR_A_P 25      // PWM A (out) => pin25
+#define MOTOR_B_P 26      // PWM B (out) => pin26
+#define MOTOR_EN_P 13     // Motor enable => pin13
+#define MAX_SPEED 255     // Motor max PWM (count)
 
-//Analog
-#define MOTOR_EN 15
-
-//Other definitions
-#define MAX_SPEED 255
->>>>>>> ab7fbbb96b7a35d5052d3733bbe5005d823f4da0
-
-//Global Variables
-const uint64_t pipe = 0xF0F0F0F0D2LL; // Define the transmit pipe
-long count;
+/*-----( Global Variables )-----*/
+//const uint64_t pipe = 0xF0F0F0F0D2LL; // Define the transmit pipe
+long count;                             // Current number of interrupts from encoder
 long countIncrement;
-<<<<<<< HEAD
 long loopCount;
 
-/*-----( Declare objects )-----*/
-RF24 radio(RF_CS,RF_CSN); // Create a Radio
+/*-----( Instantiate Radio )-----*/
+RF24 radio(RF_CS_P,RF_CSN_P); // Create a Radio
 
-//play with stop condition
-void move (int dir) {
-=======
-RF24 radio(RF_CS,RF_CSN); // Create a Radio
-
-
-
-
-  
- //Set up all required I/O and global variables
-void setup()   /****** SETUP: RUNS ONCE ******/
+/*
+  Setup: Set up all required I/O and global variables
+*/
+void setup()
   {
     //115200 baud for laser
     Serial.begin(115200);
   
-  
     //Initialize the SD card
     Serial.println("Initializing SD card...");
   
-    if(SD.begin(SD_CS)){
+    if(SD.begin(SD_CS_P)){
        Serial.println("SD card initialized successfully.\n");
     }
   
@@ -81,13 +90,13 @@ void setup()   /****** SETUP: RUNS ONCE ******/
     attachInterrupt(2, countInt, CHANGE);
   
     //Set up motor pins
-    pinMode(MOTOR_1, OUTPUT);
-    pinMode(MOTOR_2, OUTPUT);
-    pinMode(MOTOR_EN, OUTPUT);
+    pinMode(MOTOR_A_P, OUTPUT);
+    pinMode(MOTOR_B_P, OUTPUT);
+    pinMode(MOTOR_EN_P, OUTPUT);
  
-    digitalWrite(MOTOR_1, HIGH);
-    digitalWrite(MOTOR_2, LOW);
-    analogWrite(MOTOR_EN, 0);
+    digitalWrite(MOTOR_A_P, HIGH);
+    digitalWrite(MOTOR_B_P, LOW);
+    analogWrite(MOTOR_EN_P, 0);
   
     //RF Initialization
     printf_begin();
@@ -127,11 +136,11 @@ void move () {
 <<<<<<< HEAD
   
   if (dir == 1){
-     digitalWrite(MOTOR_1, LOW);
-     digitalWrite(MOTOR_2, HIGH);
+     digitalWrite(MOTOR_A_P, LOW);
+     digitalWrite(MOTOR_B_P, HIGH);
   } else {
-      digitalWrite(MOTOR_1, HIGH);
-      digitalWrite(MOTOR_2, LOW);
+      digitalWrite(MOTOR_A_P, HIGH);
+      digitalWrite(MOTOR_B_P, LOW);
   }
   
   //Serial.println("Speeding up");
@@ -158,7 +167,7 @@ void move () {
    //Serial.println("Slowing speed.");
    
    motorSpeed = 200;
-   analogWrite(MOTOR_EN, motorSpeed);
+   analogWrite(MOTOR_EN_P, motorSpeed);
    
        /*
 =======
@@ -166,7 +175,7 @@ void move () {
      while (count < (currentCount + countIncrement)) {
       
 >>>>>>> ab7fbbb96b7a35d5052d3733bbe5005d823f4da0
-       analogWrite(MOTOR_EN, motorSpeed);
+       analogWrite(MOTOR_EN_P, motorSpeed);
      
        if (motorSpeed - 15 < 0) {
          motorSpeed = 0;
@@ -190,32 +199,32 @@ void move () {
   Serial.println("Braking");
 
     if (dir == 1) {
-      digitalWrite(MOTOR_1, HIGH);
+      digitalWrite(MOTOR_A_P, HIGH);
     } else {
-       digitalWrite(MOTOR_1, LOW);
+       digitalWrite(MOTOR_A_P, LOW);
      }
      
 =======
     //Cause the H-bridge to brake the motor
-    digitalWrite(MOTOR_1, LOW);
+    digitalWrite(MOTOR_A_P, LOW);
 >>>>>>> ab7fbbb96b7a35d5052d3733bbe5005d823f4da0
-    analogWrite(MOTOR_EN, 255);
+    analogWrite(MOTOR_EN_P, 255);
     
     delay(50);
     
     //Set motor back to the forward direction and disable it
-    analogWrite(MOTOR_EN, 0);
+    analogWrite(MOTOR_EN_P, 0);
 <<<<<<< HEAD
     
     if (dir == 1) {
-      digitalWrite(MOTOR_1, LOW);
+      digitalWrite(MOTOR_A_P, LOW);
     } else {
-      digitalWrite(MOTOR_1, HIGH);   
+      digitalWrite(MOTOR_A_P, HIGH);   
     }
    
    Serial.print(count - currentCount);
 =======
-    digitalWrite(MOTOR_1, HIGH);   
+    digitalWrite(MOTOR_A_P, HIGH);   
 >>>>>>> ab7fbbb96b7a35d5052d3733bbe5005d823f4da0
   
     return;
@@ -238,13 +247,13 @@ void move () {
   attachInterrupt(2, countInt, CHANGE);
   
   //Set up motor pins
-  pinMode(MOTOR_1, OUTPUT);
-  pinMode(MOTOR_2, OUTPUT);
-  pinMode(MOTOR_EN, OUTPUT);
+  pinMode(MOTOR_A_P, OUTPUT);
+  pinMode(MOTOR_B_P, OUTPUT);
+  pinMode(MOTOR_EN_P, OUTPUT);
  
-  digitalWrite(MOTOR_1, HIGH);
-  digitalWrite(MOTOR_2, LOW);
-  digitalWrite(MOTOR_EN, LOW);
+  digitalWrite(MOTOR_A_P, HIGH);
+  digitalWrite(MOTOR_B_P, LOW);
+  digitalWrite(MOTOR_EN_P, LOW);
   
   //RF Initialization
   printf_begin();
@@ -279,17 +288,8 @@ void loop()   /****** LOOP: RUNS CONSTANTLY ******/
 //Increments the counter variable by 1 every time it is triggered on both the rising
 //and falling edge of the signal. This translates into 16 interrupts per rotation of the 
 //disc. With a 1 5/8 diameter wheel, this equals 0.38" per interrupt
-void countInt() {
+void countInt(){
   count++;
-<<<<<<< HEAD
- // Serial.print("Count = ");
- //Serial.println(count);
-=======
-  
-  //For testing only
-  Serial.print("Count = ");
-  Serial.println(count);
->>>>>>> ab7fbbb96b7a35d5052d3733bbe5005d823f4da0
 }
 
 
